@@ -1,0 +1,1 @@
+NOTE: Set the `KCONFIG_CONFIG` to <kconfig> when making klipper
