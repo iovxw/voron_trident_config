@@ -3,7 +3,9 @@ services:
     image: docker.io/mkuf/klipper:latest
     privileged: true
     group_add:
-      - "986" # host uucp gid for /dev/ttyACM0
+      - "986" # host uucp gid
+    logging:
+      driver: none # file logging
     volumes:
       - tmp:/tmp
       - run:/opt/printer_data/run
@@ -14,10 +16,15 @@ services:
       - ./klippy/extras/motor_constants.py:/opt/klipper/klippy/extras/motor_constants.py
       - ./klippy/extras/motor_database.cfg:/opt/klipper/klippy/extras/motor_database.cfg
       # configs
-      - ./klipper.conf:/opt/printer_data/config/printer.cfg
       - .:/opt/printer_data/config
+      - /opt/printer_data/config/gcodes
       # data
       - ./gcodes:/opt/printer_data/gcodes
+    command: >
+      -I printer_data/run/klipper.tty
+      -a printer_data/run/klipper.sock
+      -l printer_data/logs/klippy.log
+      printer_data/config/klipper.conf
 
   moonraker:
     image: docker.io/mkuf/moonraker:latest
@@ -26,8 +33,11 @@ services:
     volumes:
       - run:/opt/printer_data/run
       - logs:/opt/printer_data/logs
-      - ./moonraker.conf:/opt/printer_data/config/moonraker.conf
+      - .:/opt/printer_data/config
       - ./gcodes:/opt/printer_data/gcodes
+      # disable warnings
+      - /dev/null:/opt/klipper/config/null
+      - /dev/null:/opt/klipper/docs/null
 
   tools:
     image: docker.io/mkuf/klipper:latest-tools
@@ -36,7 +46,7 @@ services:
     tty: true
     privileged: true
     group_add:
-      - "986" # host uucp gid for /dev/ttyACM0
+      - "986" # host uucp gid
     entrypoint: bash -c
     working_dir: /opt/klipper
     volumes:
