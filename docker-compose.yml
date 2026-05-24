@@ -1,0 +1,60 @@
+services:
+  klipper:
+    image: docker.io/mkuf/klipper:latest
+    privileged: true
+    group_add:
+      - "986" # host uucp gid for /dev/ttyACM0
+    volumes:
+      - tmp:/tmp
+      - run:/opt/printer_data/run
+      - logs:/opt/printer_data/logs
+      - /dev:/dev
+      # plugins
+      - ./klippy/extras/autotune_tmc.py:/opt/klipper/klippy/extras/autotune_tmc.py
+      - ./klippy/extras/motor_constants.py:/opt/klipper/klippy/extras/motor_constants.py
+      - ./klippy/extras/motor_database.cfg:/opt/klipper/klippy/extras/motor_database.cfg
+      # configs
+      - ./klipper.conf:/opt/printer_data/config/printer.cfg
+      - .:/opt/printer_data/config
+      # data
+      - ./gcodes:/opt/printer_data/gcodes
+
+  moonraker:
+    image: docker.io/mkuf/moonraker:latest
+    ports:
+      - "7125:7125"
+    volumes:
+      - run:/opt/printer_data/run
+      - logs:/opt/printer_data/logs
+      - ./moonraker.conf:/opt/printer_data/config/moonraker.conf
+      - ./gcodes:/opt/printer_data/gcodes
+
+  tools:
+    image: docker.io/mkuf/klipper:latest-tools
+    profiles:
+      - tools
+    tty: true
+    privileged: true
+    group_add:
+      - "986" # host uucp gid for /dev/ttyACM0
+    entrypoint: bash -c
+    working_dir: /opt/klipper
+    volumes:
+      - tmp:/tmp
+      - /dev:/dev
+      - ./kconfig:/opt/klipper/.config
+
+volumes:
+  run:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+  logs:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+  tmp: # for /tmp/resonances_*.csv
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: "mode=1777"
