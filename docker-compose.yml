@@ -17,7 +17,6 @@ services:
       - ./klippy/extras/motor_database.cfg:/opt/klipper/klippy/extras/motor_database.cfg
       # configs
       - .:/opt/printer_data/config
-      - /opt/printer_data/config/gcodes
       # data
       - ./gcodes:/opt/printer_data/gcodes
     command: >
@@ -35,9 +34,10 @@ services:
       - logs:/opt/printer_data/logs
       - .:/opt/printer_data/config
       - ./gcodes:/opt/printer_data/gcodes
-      # disable warnings
+      # fix warnings
       - /dev/null:/opt/klipper/config/null
       - /dev/null:/opt/klipper/docs/null
+      - /opt/printer_data/config/gcodes
 
   tools:
     image: docker.io/mkuf/klipper:latest-tools
